@@ -1,0 +1,198 @@
+openapi: 3.0.0
+info:
+  title: API de Usuários
+  version: 1.0.0
+  description: API para gerenciamento de usuários com operações CRUD e autenticação.
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+paths:
+  /usuario:
+    post:
+      summary: Criar usuário
+      description: Cria um novo usuário no sistema.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, username, email, senha, dataNascimento]
+              properties:
+                nome:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                senha:
+                  type: string
+                  format: password
+                dataNascimento:
+                  type: string
+                  format: date
+      responses:
+        "201":
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  dataCadastro:
+                    type: string
+                    format: date-time
+        "400":
+          description: Requisição inválida
+        "409":
+          description: E-mail ou username já cadastrados
+
+    get:
+      summary: Listar usuários
+      description: Retorna lista de usuários cadastrados, com ou sem filtros.
+      parameters:
+        - name: nome
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de usuários encontrada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    nome:
+                      type: string
+                    email:
+                      type: string
+        "404":
+          description: Nenhum usuário encontrado com os filtros
+        "400":
+          description: Filtros inválidos
+
+  /usuario/{id}:
+    put:
+      summary: Atualizar usuário
+      description: Atualiza os dados de um usuário pelo ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                senha:
+                  type: string
+                  format: password
+                dataNascimento:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Usuário atualizado com sucesso
+        "204":
+          description: Atualizado sem conteúdo de retorno
+        "400":
+          description: Dados inválidos
+        "404":
+          description: Usuário não encontrado
+        "500":
+          description: Erro interno no servidor
+
+    delete:
+      summary: Excluir usuário
+      description: Exclui um usuário pelo ID, confirmando também com o primeiro nome via parâmetro de query.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: nome
+          in: query
+          required: true
+          description: Primeiro nome do usuário para confirmar a exclusão.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Usuário excluído com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nome:
+                      type: string
+                    email:
+                      type: string
+        "400":
+          description: Requisição inválida (ID ou nome faltando/invalidos)
+        "401":
+          description: Não autorizado
+        "404":
+          description: Usuário não encontrado
+
+  /login:
+    post:
+      summary: Autenticação de usuário
+      description: Faz login do usuário retornando um token de acesso.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, senha]
+              properties:
+                email:
+                  type: string
+                  format: email
+                senha:
+                  type: string
+                  format: password
+      responses:
+        "200":
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "400":
+          description: Requisição inválida
+        "401":
+          description: Credenciais inválidas
